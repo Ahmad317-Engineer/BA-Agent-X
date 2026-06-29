@@ -3,6 +3,7 @@ BA Agent API - With State Machine
 """
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 from datetime import datetime
@@ -52,6 +53,7 @@ async def root():
             "POST /agent/run - Process user input",
             "GET /agent/status/{session_id} - Get session status",
             "GET /agent/sessions - List all sessions",
+            "GET /ui - Frontend UI",
             "GET /health - Health check"
         ]
     }
@@ -63,6 +65,10 @@ async def health():
         "timestamp": datetime.now().isoformat(),
         "version": "2.0.0"
     }
+
+@app.get("/ui")
+async def frontend():
+    return FileResponse("frontend/index.html")
 
 @app.post("/agent/run", response_model=AgentResponse)
 async def run_agent(request: UserRequest):
@@ -124,7 +130,6 @@ async def get_status(session_id: str):
     """Get session status and results"""
     if session_id not in sessions:
         raise HTTPException(status_code=404, detail="Session not found")
-    
     return sessions[session_id]
 
 @app.get("/agent/sessions")
@@ -142,8 +147,4 @@ if __name__ == "__main__":
     print("=" * 60)
     print("BA AGENT v2 - WITH STATE MACHINE")
     print("=" * 60)
-    print("?? Starting server...")
-    print("?? API: http://localhost:8000")
-    print("?? Docs: http://localhost:8000/docs")
-    print("=" * 60)
-    uvicorn.run(app, host="0.0.0.0", port=8000, )
+    uvicorn.run(app, host="0.0.0.0", port=8000)
