@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -114,37 +114,37 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🤖 BA Agent</h1>
+            <h1>?? BA Agent</h1>
             <p>Your Autonomous Business Analyst Assistant</p>
         </div>
         
         <div class="chat-area" id="chatArea">
             <div class="message agent">
                 <div class="bubble">
-                    👋 Hello! I'm your BA Agent.<br><br>
+                    ?? Hello! I'm your BA Agent.<br><br>
                     I can help you with:<br>
-                    • 📋 Requirements & User Stories<br>
-                    • 🔍 Gap Analysis<br>
-                    • 📚 Documentation<br>
-                    • 🧪 Test Scenarios<br><br>
+                    � ?? Requirements & User Stories<br>
+                    � ?? Gap Analysis<br>
+                    � ?? Documentation<br>
+                    � ?? Test Scenarios<br><br>
                     <strong>Try asking:</strong> "I need a login feature"
                 </div>
             </div>
         </div>
         
         <div class="examples">
-            <strong>📝 Quick Examples:</strong>
-            <button class="example-btn" onclick="sendExample('I need a user authentication system')">🔐 Authentication</button>
-            <button class="example-btn" onclick="sendExample('We are missing inventory tracking')">📦 Gap Analysis</button>
-            <button class="example-btn" onclick="sendExample('Please document the API')">📚 Documentation</button>
+            <strong>?? Quick Examples:</strong>
+            <button class="example-btn" onclick="sendExample('I need a user authentication system')">?? Authentication</button>
+            <button class="example-btn" onclick="sendExample('We are missing inventory tracking')">?? Gap Analysis</button>
+            <button class="example-btn" onclick="sendExample('Please document the API')">?? Documentation</button>
         </div>
         
-        <div class="typing" id="typing">🤖 BA Agent is analyzing...</div>
-        <div class="status" id="status">✅ Connected to BA Agent</div>
+        <div class="typing" id="typing">?? BA Agent is analyzing...</div>
+        <div class="status" id="status">? Connected to BA Agent</div>
         
         <div class="input-area">
             <input type="text" id="userInput" placeholder="Describe your business need..." onkeypress="if(event.key==='Enter') sendMessage()">
-            <button onclick="sendMessage()">Send →</button>
+            <button onclick="sendMessage()">Send ?</button>
         </div>
     </div>
 
@@ -182,11 +182,11 @@
                 
                 const data = await response.json();
                 addMessage(data.output, false);
-                document.getElementById('status').innerHTML = '✅ Connected to BA Agent';
+                document.getElementById('status').innerHTML = '? Connected to BA Agent';
                 
             } catch (error) {
-                addMessage('❌ Error: Cannot connect to BA Agent. Make sure backend is running.', false);
-                document.getElementById('status').innerHTML = '🔴 Disconnected from BA Agent';
+                addMessage('? Error: Cannot connect to BA Agent. Make sure backend is running.', false);
+                document.getElementById('status').innerHTML = '?? Disconnected from BA Agent';
             } finally {
                 typing.classList.remove('active');
             }
@@ -201,10 +201,10 @@
             try {
                 const response = await fetch(API_URL + '/health');
                 if (response.ok) {
-                    document.getElementById('status').innerHTML = '✅ Connected to BA Agent';
+                    document.getElementById('status').innerHTML = '? Connected to BA Agent';
                 }
             } catch (error) {
-                document.getElementById('status').innerHTML = '🔴 Disconnected from BA Agent';
+                document.getElementById('status').innerHTML = '?? Disconnected from BA Agent';
             }
         }
         
