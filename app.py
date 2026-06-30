@@ -34,10 +34,12 @@ app.add_middleware(
 agent_graph = create_agent_graph()
 sessions: Dict[str, Dict[str, Any]] = {}
 
+
 class UserRequest(BaseModel):
     input: str
     user_id: str
     channel: str = "api"
+
 
 class AgentResponse(BaseModel):
     session_id: str
@@ -47,17 +49,43 @@ class AgentResponse(BaseModel):
     needs_approval: bool = False
     error: Optional[str] = None
 
+
+def extract_context(result):
+    """LangGraph's invoke() can return the state object directly, or a dict-like
+    AddableValuesDict containing it. Find the actual AgentContext instance."""
+    if isinstance(result, AgentContext):
+        return result
+    if isinstance(result, dict):
+        # Direct key match
+        if "context" in result and isinstance(result["context"], AgentContext):
+            return result["context"]
+        # Search all values for an AgentContext instance
+        for v in result.values():
+            if isinstance(v, AgentContext):
+                return v
+        # As a last resort: maybe the dict IS the state fields themselves
+        # (LangGraph sometimes returns the Pydantic model's __dict__ as AddableValuesDict)
+        try:
+            return AgentContext(**result)
+        except Exception:
+            pass
+    raise ValueError(f"Could not extract AgentContext from LangGraph result: {type(result)} - {result}")
+
+
 @app.get("/")
 async def root():
     return {"agent": "BA Agent v2", "status": "running"}
+
 
 @app.get("/health")
 async def health():
     return {"status": "healthy", "timestamp": datetime.now().isoformat(), "version": "2.0.0"}
 
+
 @app.get("/ui")
 async def frontend():
     return FileResponse("frontend/index.html")
+
 
 @app.post("/agent/run", response_model=AgentResponse)
 async def run_agent(request: UserRequest):
@@ -70,10 +98,8 @@ async def run_agent(request: UserRequest):
     )
     try:
         result = agent_graph.invoke(context)
-        if isinstance(result, dict):
-            ctx = result.get("context") or list(result.values())[0]
-        else:
-            ctx = result
+        ctx = extract_context(result)
+
         sessions[session_id] = {
             "user_id": request.user_id,
             "input": request.input,
@@ -83,6 +109,7 @@ async def run_agent(request: UserRequest):
             "created_at": ctx.created_at.isoformat(),
             "updated_at": ctx.updated_at.isoformat()
         }
+
         return AgentResponse(
             session_id=session_id,
             status=ctx.state.value,
@@ -91,9 +118,23 @@ async def run_agent(request: UserRequest):
             needs_approval=ctx.requires_human_approval,
             error=ctx.error
         )
+
     except Exception as e:
-        sessions[session_id] = {"user_id": request.user_id, "input": request.input, "error": str(e), "status": "error"}
-        return AgentResponse(session_id=session_id, status="error", intent="unknown", output="An error occurred processing your request", needs_approval=False, error=str(e))
+        sessions[session_id] = {
+            "user_id": request.user_id,
+            "input": request.input,
+            "error": str(e),
+            "status": "error"
+        }
+        return AgentResponse(
+            session_id=session_id,
+            status="error",
+            intent="unknown",
+            output="An error occurred processing your request",
+            needs_approval=False,
+            error=str(e)
+        )
+
 
 @app.get("/agent/status/{session_id}")
 async def get_status(session_id: str):
@@ -101,10 +142,12 @@ async def get_status(session_id: str):
         raise HTTPException(status_code=404, detail="Session not found")
     return sessions[session_id]
 
+
 @app.get("/agent/sessions")
 async def list_sessions(limit: int = 10):
     recent_sessions = list(sessions.keys())[-limit:]
     return {"total": len(sessions), "sessions": recent_sessions, "limit": limit}
+
 
 if __name__ == "__main__":
     import uvicorn
